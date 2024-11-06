@@ -117,28 +117,25 @@ export default class ImportProfileModal extends mixins(ProfilesMixin) {
             return;
         }
 
-        let read: string | null = null;
+        let read: string = '';
         try {
             read = await ProfileUtils.readProfileFile(files[0]);
         } catch (e: unknown) {
-            if(e instanceof R2Error) {
-                this.$store.commit('error/handleError', e)
-                this.closeModal();
-                return;
-            }
+            const err = R2Error.fromThrownValue(e);
+            this.$store.commit('error/handleError', err);
+            this.closeModal();
+            return;
         }
 
-        if (read) {
-            this.profileImportFilePath = files[0];
-            this.profileImportContent = await ProfileUtils.parseYamlToExportFormat(read);
+        this.profileImportFilePath = files[0];
+        this.profileImportContent = await ProfileUtils.parseYamlToExportFormat(read);
 
-            if (this.profileToOnlineMods.length === 0) {
-                this.activeStep = 'NO_PACKAGES_IN_IMPORT';
-                return;
-            }
-
-            this.activeStep = 'REVIEW_IMPORT';
+        if (this.profileToOnlineMods.length === 0) {
+            this.activeStep = 'NO_PACKAGES_IN_IMPORT';
+            return;
         }
+
+        this.activeStep = 'REVIEW_IMPORT';
     }
 
     // Fired when user has accepted the mods to be imported in the review phase.
